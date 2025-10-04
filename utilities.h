@@ -16,4 +16,6 @@ bool appendCharToArray(char array[], char ch, int *length, int maxLength);
 
 void replaceCharInString(char *str, char oldCh, char newCh);
 
+bool stringHasChar(const char *str, char ch);
+
 #endif //HANGMAN_UTILITIES_H

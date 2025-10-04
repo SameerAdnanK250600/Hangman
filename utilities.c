@@ -84,3 +84,10 @@ void replaceCharInString(char *str, char oldCh, char newCh) {
         if (str[i] == oldCh) str[i] = newCh;
     }
 }
+
+bool stringHasChar(const char* str, char ch) {
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (str[i] == ch) return true;
+    }
+    return false;
+}
