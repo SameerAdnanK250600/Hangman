@@ -16,12 +16,21 @@ int main(int argc, char* argv[]) {
     }
 
     SDL_Window *window = SDL_CreateWindow(
-        "Hangman",
+        "Hangman", // puts the window name as Hangman
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         800, 600,
         SDL_WINDOW_OPENGL
     );
+
+    //window icon
+    SDL_Surface* icon = SDL_LoadBMP("resources/icon.bmp");
+    if (!icon) {
+        printf("Could not load icon: %s\n", SDL_GetError());
+    } else {
+        SDL_SetWindowIcon(window, icon);
+        SDL_FreeSurface(icon); //free after setting
+    }
 
     if (!window) {
         printf("Failed to init window: %s\n", SDL_GetError());
@@ -56,5 +65,8 @@ int main(int argc, char* argv[]) {
     }
 
     test();
+    printf("%s\n", getRandomWordFromFile("continents"));
+    printf("%s\n", getRandomWordFromFile("planets"));
+    printf("%s\n", getRandomWordFromFile("countries"));
     return 0;
 }
