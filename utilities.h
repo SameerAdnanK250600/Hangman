@@ -24,4 +24,6 @@ void revealGuessedLetter(const char *word, char *revealed, char guess);
 
 bool isWordFullyRevealed(const char *revealed);
 
+void resetString(char *str);
+
 #endif //HANGMAN_UTILITIES_H

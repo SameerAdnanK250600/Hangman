@@ -116,3 +116,7 @@ bool isWordFullyRevealed(const char *revealed) {
     }
     return true;  //all letters revealed
 }
+
+void resetString(char *str) {
+    str[0] = '\0';
+}
