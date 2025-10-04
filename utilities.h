@@ -18,4 +18,6 @@ void replaceCharInString(char *str, char oldCh, char newCh);
 
 bool stringHasChar(const char *str, char ch);
 
+void copyStringToUnderscores(char *dest, const char *src);
+
 #endif //HANGMAN_UTILITIES_H

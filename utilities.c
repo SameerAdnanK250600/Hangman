@@ -91,3 +91,11 @@ bool stringHasChar(const char* str, char ch) {
     }
     return false;
 }
+
+void copyStringToUnderscores(char *dest, const char *src) {
+    int len = strlen(src);
+    for (int i = 0; i < len; i++) {
+        dest[i] = '_';
+    }
+    dest[len] = '\0'; //terminate properly
+}
