@@ -21,4 +21,10 @@ typedef struct {
 
 void test();
 
+void initHangman(GameState *game, const char *word, int lives);
+bool processGuess(GameState *game, char guess);
+bool isGameWon(const GameState *game);
+bool isGameOver(const GameState *game);
+void resetGame(GameState *game, const char newWord, int newLives);
+
 #endif //HANGMAN_HANGMAN_H
