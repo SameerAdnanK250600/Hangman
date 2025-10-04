@@ -69,5 +69,8 @@ int main(int argc, char* argv[]) {
     printf("%s\n", getRandomWordFromFile("continents"));
     printf("%s\n", getRandomWordFromFile("planets"));
     printf("%s\n", getRandomWordFromFile("countries"));
+    printf("%s\n", getRandomWordFromFile("animals"));
+    printf("%s\n", getRandomWordFromFile("fruits"));
+    printf("%s\n", getRandomWordFromFile("vegetables"));
     return 0;
 }
