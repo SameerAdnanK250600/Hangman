@@ -118,3 +118,25 @@ while not isGameOver(game):
 if not isGameWon(game):
     print you lost! word was <word>
 ```
+
+## Helper functions:
+- getRandomWordFromFile(filename)
+  - returns random line from the specified file
+- stringToLower(word)
+  - returns provided string as fully lowercased
+- charInArray(array, char, lengthOfArray)
+  - returns true if character exists inside given array, else returns false
+- appendCharToArray(array, char, lengthOfArray, maxLength)
+  - adds the given character to the given array
+- replaceCharInString(string, oldchar, newchar)
+  - replaced old character with new character in provided string
+- stringHasChar(string, char)
+  - returns true if provided string has provided character, else false
+- copyStringToUnderscores(destinationString, sourceString)
+  - makes a copy of sourceString but completely underscores inside the destinationString
+- revealGuessedLetter(originalWord, revealedWord, guessedChar)
+  - replaces the underscore inside revealedWord with guessed Character according to orignal word
+- isWordFullyRevealed(revealedWord)
+  - checks if the string has underscores left, if not the word is completely revealed, returns true
+- resetString(stringPointer)
+  - resets string by setting the first letter to a terminator
