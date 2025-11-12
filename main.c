@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
         "Hangman", // puts the window name as Hangman
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        800, 600,
+        1080, 720,
         SDL_WINDOW_OPENGL
     );
 

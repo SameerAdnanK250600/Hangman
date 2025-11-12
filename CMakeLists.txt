@@ -9,7 +9,9 @@ add_executable(Hangman main.c
         hangman.h
         hangman.c
         utilities.h
-        utilities.c)
+        utilities.c
+        resources/app_icon.rc
+)
 
 target_link_libraries(Hangman
         PRIVATE
