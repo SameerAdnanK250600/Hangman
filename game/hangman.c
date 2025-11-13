@@ -6,6 +6,8 @@
 
 #include <string.h>
 
+#include "../utility/utilities.h"
+
 void initHangman(GameState *game, const char *word, int lives) {
     strcpy(game->word, word);
 
@@ -17,4 +19,24 @@ void initHangman(GameState *game, const char *word, int lives) {
     game->guessed[0] = '\0';
     game->numGuessed = 0;
     game->lives = lives;
+}
+
+bool processGuess(GameState *game, char guess) {
+    int length = strlen(game->word);
+    bool isCorrect = false;
+
+    for (int i = 0; i < length; i++) {
+        if (game->word[i] == guess) {
+            game->revealed[i] = guess;
+            isCorrect = true;
+        }
+    }
+
+    if (!isCorrect) {
+        game->lives--;
+    }
+
+    appendCharToArray(game->guessed, guess, &game->numGuessed, MAX_GUESSED);
+
+    return isCorrect;
 }
