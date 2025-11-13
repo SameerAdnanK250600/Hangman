@@ -93,8 +93,6 @@ int main(int argc, char* argv[]) {
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-
-    test();
     printf("%s\n", getRandomWordFromFile("continents"));
     printf("%s\n", getRandomWordFromFile("planets"));
     printf("%s\n", getRandomWordFromFile("countries"));
