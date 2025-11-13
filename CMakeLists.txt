@@ -20,6 +20,8 @@ add_executable(Hangman
         resources/app_icon.rc
         screens/main_menu.c
         screens/main_menu.h
+        screens/about_section.c
+        screens/about_section.h
 )
 
 target_link_libraries(Hangman
