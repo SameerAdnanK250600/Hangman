@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <glad/glad.h>
 #include <stdbool.h>
 #include "screens/main_menu.h"
@@ -14,6 +15,12 @@ int main(int argc, char* argv[]) {
 
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         printf("Could not init SDL: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    if (TTF_Init() == -1) {
+        printf("TTF_Init Error: %s\n", TTF_GetError());
+        SDL_Quit();
         exit(1);
     }
 
@@ -91,6 +98,7 @@ int main(int argc, char* argv[]) {
     main_menu_destroy();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    TTF_Quit();
     SDL_Quit();
 
     printf("%s\n", getRandomWordFromFile("continents"));

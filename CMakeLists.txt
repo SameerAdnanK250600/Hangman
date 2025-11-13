@@ -9,6 +9,8 @@ find_package(SDL2_image CONFIG REQUIRED)
 
 find_package(glad CONFIG REQUIRED)
 
+find_package(SDL2_ttf CONFIG REQUIRED)
+
 add_executable(Hangman
         main.c
         game/hangman.h
@@ -25,5 +27,6 @@ target_link_libraries(Hangman
         $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
         $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
         $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>
+        $<IF:$<TARGET_EXISTS:SDL2_ttf::SDL2_ttf>,SDL2_ttf::SDL2_ttf,SDL2_ttf::SDL2_ttf-static>
         glad::glad
 )
