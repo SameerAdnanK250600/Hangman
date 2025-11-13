@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "screens/main_menu.h"
 #include "game/hangman.h"
+#include "screens/about_section.h"
 #include "utility/utilities.h"
 
 #define SDL_MAIN_HANDLED
@@ -43,6 +44,11 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
+    if (!about_section_init(window, renderer)) {
+        printf("About section failed to initialize.\n");
+        exit(1);
+    }
+
     //window icon
     SDL_Surface* icon = SDL_LoadBMP("resources/icon.bmp");
     if (!icon) {
@@ -70,6 +76,7 @@ int main(int argc, char* argv[]) {
 
     bool shouldQuit = false;
     bool inMenu = true;
+    bool inAbout = false;
 
     while (!shouldQuit) {
         SDL_Event event;
@@ -85,17 +92,28 @@ int main(int argc, char* argv[]) {
                     // TODO: switch to the game screen here
                 } else if (action == MENU_ABOUT) {
                     printf("About pressed!\n");
-                    // TODO: switch to about screen
+                    inMenu = false;
+                    inAbout = true;
+                }
+            } else if (inAbout) {
+                // Press ESC or click window close to go back to menu
+                if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
+                    inAbout = false;
+                    inMenu = true;
                 }
             }
         }
 
+        // --- Render ---
         if (inMenu) {
             main_menu_render(renderer);
+        } else if (inAbout) {
+            about_section_render(renderer, window);
         }
     }
 
     main_menu_destroy();
+    about_section_destroy();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     TTF_Quit();
