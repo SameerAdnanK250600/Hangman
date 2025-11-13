@@ -19,8 +19,6 @@ typedef struct {
     int lives;                      // remaining lives
 } GameState;
 
-void test();
-
 void initHangman(GameState *game, const char *word, int lives);
 bool processGuess(GameState *game, char guess);
 bool isGameWon(const GameState *game);
