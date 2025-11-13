@@ -10,7 +10,7 @@
 | Implemented? | Input              | Processing                                               | Module / Reference    | Output                         |
 |--------------|--------------------|----------------------------------------------------------|-----------------------|--------------------------------|
 | [x]          | word, lives        | Initialize game state and variables                      | `initHangman()`       | Ready game state               |
-| [ ]          | guessed letter     | Check if letter exists in word, update revealed or lives | `processGuess()`      | Updated state (revealed/lives) |
+| [x]          | guessed letter     | Check if letter exists in word, update revealed or lives | `processGuess()`      | Updated state (revealed/lives) |
 | [ ]          | current game state | Check if all letters guessed                             | `isGameWon()`         | Boolean (win/lose)             |
 | [ ]          | current game state | Check if lives are 0 or word complete                    | `isGameOver()`        | Boolean (true/false)           |
 | [ ]          | current game state | Return current revealed word with underscores            | `getRevealedWord()`   | Revealed word string           |
