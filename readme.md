@@ -6,13 +6,13 @@
 
 ### Planned Power-ups
 
-| Implemented? | ID | Power-Up Name           | Effect                                                 |
-|--------------|----|-------------------------|--------------------------------------------------------|
-| [ ]          | 1  | Fill Random Blank       | Reveals one correct missing letter                     |
-| [ ]          | 2  | Extra Life              | +1 life                                                |
-| [ ]          | 3  | Reveal Random Consonant | Reveals one random consonant that still remains hidden |
-| [ ]          | 4  | Shield                  | Next incorrect guess does NOT reduce a life            |
-| [ ]          | 5  | Chance                  | 5% bonus power-up, 5% lose life, 90% nothing           |
+| Implemented? | ID | Power-Up Name     | Effect                                       |
+|--------------|----|-------------------|----------------------------------------------|
+| [ ]          | 1  | Fill Random Blank | Reveals one correct missing letter           |
+| [ ]          | 2  | Extra Life        | +1 life                                      |
+| [ ]          | 3  | Reveal All Vowels | Reveals all vowels in word                   |
+| [ ]          | 4  | Shield            | Next incorrect guess does NOT reduce a life  |
+| [ ]          | 5  | Chance            | 5% bonus power-up, 5% lose life, 90% nothing |
 
 ### PAC
 | Implemented? | Input          | Processing                             | Function / Module     | Output             |
