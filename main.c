@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     }
 
     SDL_GL_CreateContext(window);
-    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
+    if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
         printf("Failed to load GL: %s\n", SDL_GetError());
         exit(1);
     }

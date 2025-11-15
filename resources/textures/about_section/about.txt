@@ -5,3 +5,5 @@ Shayan (Game Logic/Game Assets)
 Sameer (Game Logic/UI)
 
 Credits to SDL2 Team (Amazing Library)
+
+Press ESC to go back
