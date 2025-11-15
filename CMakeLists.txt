@@ -24,6 +24,14 @@ add_executable(Hangman
         screens/about_section.h
 )
 
+add_executable(test_main
+        test_main.c
+        game/hangman.h
+        game/hangman.c
+        utility/utilities.h
+        utility/utilities.c
+)
+
 target_link_libraries(Hangman
         PRIVATE
         $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
