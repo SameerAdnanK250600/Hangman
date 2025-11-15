@@ -10,18 +10,19 @@
 #include <time.h>
 #include <stdbool.h>
 
-char* getRandomWordFromFile(const char* fileName) {
+char *getRandomWordFromFile(const char *fileName) {
     char path[256];
-    snprintf(path, sizeof(path), "resources/words/%s.txt", fileName); //look for filename txt file inside resources folder
+    snprintf(path, sizeof(path), "resources/words/%s.txt", fileName);
+    //look for filename txt file inside resources folder
 
-    FILE* file = fopen(path, "r");
+    FILE *file = fopen(path, "r");
     if (file == NULL) {
         perror("Failed to open file");
         return NULL;
     }
 
-    //read all lines into array of strings
-    char* lines[256]; //max 256 lines possible
+    // read all lines into array of strings
+    char *lines[256]; // max 256 lines possible
     int lineCount = 0;
     char buffer[256];
 
@@ -29,27 +30,27 @@ char* getRandomWordFromFile(const char* fileName) {
         // remove new line characters
         buffer[strcspn(buffer, "\n")] = '\0';
 
-        //store each line
+        // store each line
         lines[lineCount] = malloc(strlen(buffer) + 1);
         strcpy(lines[lineCount], buffer);
         lineCount++;
 
-        if (lineCount >= 256) break; //prevent overflow
+        if (lineCount >= 256) break; // prevent overflow
     }
 
     fclose(file);
 
-    if (lineCount == 0) return NULL; //file would be empty
+    if (lineCount == 0) return NULL; // file would be empty
 
-    //choose random number
+    // choose random number
     srand(time(NULL));
     int random_index = rand() % (lineCount);
 
-    //choose and copy the random line to return
-    char* selectedLine = malloc(strlen(lines[random_index]) + 1);
+    // choose and copy the random line to return
+    char *selectedLine = malloc(strlen(lines[random_index]) + 1);
     strcpy(selectedLine, lines[random_index]);
 
-    //free all others
+    // free all others
     for (int i = 0; i < lineCount; i++) {
         free(lines[i]);
     }
@@ -57,7 +58,8 @@ char* getRandomWordFromFile(const char* fileName) {
     return selectedLine;
 }
 
-char* stringToLower(char* word) {
+char *stringToLower(char *word) {
+    // use tolower char function for entire string
     for (int i = 0; word[i] != '\0'; i++) {
         word[i] = tolower(word[i]);
     }
@@ -65,6 +67,7 @@ char* stringToLower(char* word) {
 }
 
 bool charInArray(const char array[], char ch, int length) {
+    // loop thru the array to find the char
     for (int i = 0; i < length; i++) {
         if (array[i] == ch) return true;
     }
@@ -72,20 +75,16 @@ bool charInArray(const char array[], char ch, int length) {
 }
 
 bool appendCharToArray(char array[], char ch, int *length, int maxLength) {
-    if ((*length) >= maxLength) return false;
+    // leave space for null terminator
+    if ((*length) >= maxLength - 1) return false;
 
     array[*length] = ch;
     (*length)++;
+    array[*length] = '\0';  // null terminate
     return true;
 }
 
-void replaceCharInString(char *str, char oldCh, char newCh) {
-    for (int i = 0; str[i] != '\0'; i++) {
-        if (str[i] == oldCh) str[i] = newCh;
-    }
-}
-
-bool stringHasChar(const char* str, char ch) {
+bool stringHasChar(const char *str, char ch) {
     for (int i = 0; str[i] != '\0'; i++) {
         if (str[i] == ch) return true;
     }
@@ -93,11 +92,12 @@ bool stringHasChar(const char* str, char ch) {
 }
 
 void copyStringToUnderscores(char *dest, const char *src) {
+    // make blank version of the given string
     int len = strlen(src);
     for (int i = 0; i < len; i++) {
         dest[i] = '_';
     }
-    dest[len] = '\0'; //terminate properly
+    dest[len] = '\0';
 }
 
 void revealGuessedLetter(const char *word, char *revealed, char guess) {
@@ -111,10 +111,10 @@ void revealGuessedLetter(const char *word, char *revealed, char guess) {
 bool isWordFullyRevealed(const char *revealed) {
     for (int i = 0; revealed[i] != '\0'; i++) {
         if (revealed[i] == '_') {
-            return false;  //still letters to guess
+            return false; // still letters to guess
         }
     }
-    return true;  //all letters revealed
+    return true; // all letters revealed
 }
 
 void resetString(char *str) {

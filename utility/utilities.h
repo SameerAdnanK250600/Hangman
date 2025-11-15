@@ -14,8 +14,6 @@ bool charInArray(const char array[], char ch, int length);
 
 bool appendCharToArray(char array[], char ch, int *length, int maxLength);
 
-void replaceCharInString(char *str, char oldCh, char newCh);
-
 bool stringHasChar(const char *str, char ch);
 
 void copyStringToUnderscores(char *dest, const char *src);
