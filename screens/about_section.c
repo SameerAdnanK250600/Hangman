@@ -186,18 +186,45 @@ void about_section_destroy() {
 
 // --- Render about section ---
 void about_section_render(SDL_Renderer* renderer, SDL_Window* window) {
-    SDL_RenderClear(renderer);
+    static int prevW = 0, prevH = 0;
+    static int prevFontSize = 0;
 
-    // update window size
     SDL_GetWindowSize(window, &about.winW, &about.winH);
 
-    // re-render text if needed (optional: only if size changed)
-    render_textures(renderer);
+    // --- Determine new font size based on window height ---
+    int newFontSize = about.winH / 20;   // scale factor (adjust as desired)
+    if (newFontSize < 12) newFontSize = 12;  // minimum readable size
+
+    bool sizeChanged = (about.winW != prevW || about.winH != prevH);
+    bool fontChanged = (newFontSize != prevFontSize);
+
+    // --- If window size changed OR font size changed, rebuild fonts/textures ---
+    if (sizeChanged || fontChanged) {
+        prevW = about.winW;
+        prevH = about.winH;
+        prevFontSize = newFontSize;
+
+        // Re-open font at new size
+        if (about.font) {
+            TTF_CloseFont(about.font);
+        }
+        about.font = TTF_OpenFont("resources/font/PixelifySans-SemiBold.ttf", newFontSize);
+        if (!about.font) {
+            printf("ERROR: Could not resize font!\n");
+        }
+
+        // Re-render wrapped text
+        render_textures(renderer);
+    }
+
+    // --- Draw everything ---
+    SDL_RenderClear(renderer);
 
     SDL_Rect fullWin = {0, 0, about.winW, about.winH};
     SDL_RenderCopy(renderer, about.background, NULL, &fullWin);
 
     int y = (int)(about.winH * 0.3);
+
     for (int i = 0; i < about.numLines; i++) {
         if (about.lines[i]) {
             SDL_Rect r;
