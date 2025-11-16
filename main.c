@@ -1,10 +1,10 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <glad/glad.h>
 #include <stdbool.h>
 #include "screens/main_menu.h"
-#include "game/hangman.h"
 #include "screens/about_section.h"
+#include "screens/ingame_ui.h"
+#include "game/hangman.h"
 #include "utility/utilities.h"
 
 #define SDL_MAIN_HANDLED
@@ -15,103 +15,129 @@ int main(int argc, char* argv[]) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-        printf("Could not init SDL: %s\n", SDL_GetError());
-        exit(1);
+        printf("SDL Init failed: %s\n", SDL_GetError());
+        return 1;
     }
-
     if (TTF_Init() == -1) {
-        printf("TTF_Init Error: %s\n", TTF_GetError());
+        printf("TTF Init failed: %s\n", TTF_GetError());
         SDL_Quit();
-        exit(1);
+        return 1;
     }
 
-    SDL_Window *window = SDL_CreateWindow(
-        "Hangman", // puts the window name as Hangman
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        1280, 720,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
-    );
+    SDL_Window* window = SDL_CreateWindow("Hangman",
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,
+        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    SDL_Renderer* renderer =
+        SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (!renderer) {
-        printf("Renderer creation failed: %s\n", SDL_GetError());
-        exit(1);
+        printf("Renderer failed: %s\n", SDL_GetError());
+        return 1;
     }
 
-    if (!main_menu_init(window, renderer)) {
-        printf("Main menu failed to initialize.\n");
-        exit(1);
-    }
-
-    if (!about_section_init(window, renderer)) {
-        printf("About section failed to initialize.\n");
-        exit(1);
-    }
-
-    //window icon
-    SDL_Surface* icon = SDL_LoadBMP("resources/icon.bmp");
-    if (!icon) {
-        printf("Could not load icon: %s\n", SDL_GetError());
-    } else {
-        SDL_SetWindowIcon(window, icon);
-        SDL_FreeSurface(icon); //free after setting
-    }
-
-    if (!window) {
-        printf("Failed to init window: %s\n", SDL_GetError());
-        exit(1);
-    }
-
-    SDL_GL_CreateContext(window);
-    if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
-        printf("Failed to load GL: %s\n", SDL_GetError());
-        exit(1);
-    }
-
-    puts("OpenGL loaded");
-    printf("Vendor:   %s\n", glGetString(GL_VENDOR));
-    printf("Renderer: %s\n", glGetString(GL_RENDERER));
-    printf("Version:  %s\n", glGetString(GL_VERSION));
+    if (!main_menu_init(window, renderer)) return 1;
+    if (!about_section_init(window, renderer)) return 1;
 
     bool shouldQuit = false;
     bool inMenu = true;
     bool inAbout = false;
+    bool inGame = false;
+
+    GameState game;
+
+    // Timing
+    Uint64 lastTime = SDL_GetPerformanceCounter();
 
     while (!shouldQuit) {
+
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
+
+            // Window close
             if (event.type == SDL_QUIT) {
                 shouldQuit = true;
             }
 
+            // MAIN MENU INPUT
             if (inMenu) {
-                MenuAction action = main_menu_handle_event(window, renderer, &event);
+                MenuAction action =
+                    main_menu_handle_event(window, renderer, &event);
+
                 if (action == MENU_START) {
-                    printf("Start Game pressed!\n");
-                    // TODO: switch to the game screen here
-                } else if (action == MENU_ABOUT) {
-                    printf("About pressed!\n");
+
+                    char* word = getRandomWordFromFile("continents");
+                    if (!word) {
+                        printf("Failed to get word\n");
+                        shouldQuit = true;
+                        break;
+                    }
+
+                    game = initHangman(word, 6);
+                    free(word);
+
+                    if (!ingame_ui_init(window, renderer, &game)) {
+                        printf("Ingame UI failed\n");
+                        shouldQuit = true;
+                        break;
+                    }
+
+                    inMenu = false;
+                    inGame = true;
+                }
+                else if (action == MENU_ABOUT) {
                     inMenu = false;
                     inAbout = true;
                 }
-            } else if (inAbout) {
-                // Press ESC or click window close to go back to menu
-                if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
+            }
+
+            // ABOUT INPUT
+            else if (inAbout) {
+                if (event.type == SDL_KEYDOWN &&
+                    event.key.keysym.sym == SDLK_ESCAPE) {
                     inAbout = false;
                     inMenu = true;
                 }
             }
+
+            // IN-GAME INPUT
+            else if (inGame) {
+
+                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                // THE FIX: forward ALL input to the ingame UI
+                ingame_ui_handle_event(&event);
+                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            }
         }
 
-        // --- Render ---
+        // ---- TIME STEP ----
+        Uint64 current = SDL_GetPerformanceCounter();
+        float deltaTime =
+            (float)(current - lastTime) / SDL_GetPerformanceFrequency();
+        lastTime = current;
+
+        // ---- RENDER ----
         if (inMenu) {
             main_menu_render(renderer, window);
-        } else if (inAbout) {
+        }
+        else if (inAbout) {
             about_section_render(renderer, window);
+        }
+        else if (inGame) {
+            ingame_ui_update(deltaTime);
+            ingame_ui_render(renderer, window);
+
+            // Return to menu if user pressed ESC after game over
+            if (ingameUiShouldQuit()) {
+                setShouldQuit(false); // reset flag
+                ingame_ui_destroy();
+                inGame = false;
+                inMenu = true;
+            }
         }
     }
 
+    // Cleanup
+    if (inGame) ingame_ui_destroy();
     main_menu_destroy();
     about_section_destroy();
     SDL_DestroyRenderer(renderer);
@@ -119,11 +145,5 @@ int main(int argc, char* argv[]) {
     TTF_Quit();
     SDL_Quit();
 
-    printf("%s\n", getRandomWordFromFile("continents"));
-    printf("%s\n", getRandomWordFromFile("planets"));
-    printf("%s\n", getRandomWordFromFile("countries"));
-    printf("%s\n", getRandomWordFromFile("animals"));
-    printf("%s\n", getRandomWordFromFile("fruits"));
-    printf("%s\n", getRandomWordFromFile("vegetables"));
     return 0;
 }

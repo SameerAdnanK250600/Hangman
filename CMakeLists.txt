@@ -22,6 +22,10 @@ add_executable(Hangman
         screens/main_menu.h
         screens/about_section.c
         screens/about_section.h
+        screens/ingame_ui.c
+        screens/ingame_ui.h
+        game/game.h
+        game/game.c
 )
 
 add_executable(test_main
