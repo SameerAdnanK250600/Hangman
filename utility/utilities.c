@@ -10,6 +10,22 @@
 #include <time.h>
 #include <stdbool.h>
 
+char* getRandomWordFileName() {
+    char* words[] = {
+        "animals",
+        "continents",
+        "countries",
+        "fruits",
+        "planets",
+        "vegetables"
+    };
+
+    int word_count = sizeof(words) / sizeof(words[0]);
+    int random_index = rand() % word_count;
+
+    return words[random_index];
+}
+
 char *getRandomWordFromFile(const char *fileName) {
     char path[256];
     snprintf(path, sizeof(path), "resources/words/%s.txt", fileName);
