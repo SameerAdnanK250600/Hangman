@@ -169,6 +169,7 @@ void ingame_ui_activate_powerup(GameState *game, int power_id, char *outMessage,
             }
         }
         break;
+        default: snprintf(buffer, sizeof(buffer), "Empty Box...");;
     }
     strncpy(outMessage, buffer, size - 1);
     outMessage[size - 1] = 0;
@@ -619,9 +620,16 @@ void ingame_ui_render(SDL_Renderer *renderer, SDL_Window *window) {
         SDL_RenderFillRect(renderer, &full);
 
         SDL_Color white = {255, 255, 255, 255};
-        int x = ui.winW / 2 - 300; // centered approx
-        int y = ui.winH / 2 - 20;
-        render_text_scaled_with_shadow(renderer, ui.font, ui.powerResultText, x, y, white, 1.5f);
+
+        // Measure the text
+        int textW, textH;
+        if (TTF_SizeText(ui.font, ui.powerResultText, &textW, &textH) == 0) {
+            // Compute centered position
+            int x = (ui.winW - textW) / 2;
+            int y = (ui.winH - textH) / 2;
+
+            render_text_scaled_with_shadow(renderer, ui.font, ui.powerResultText, x, y, white, 1.5f);
+        }
     }
 
     SDL_RenderPresent(renderer);
