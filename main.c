@@ -9,7 +9,7 @@
 
 #define SDL_MAIN_HANDLED
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -24,11 +24,11 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("Hangman",
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-    SDL_Renderer* renderer =
-        SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Window *window = SDL_CreateWindow("Hangman",
+                                          SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,
+                                          SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    SDL_Renderer *renderer =
+            SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     if (!renderer) {
         printf("Renderer failed: %s\n", SDL_GetError());
@@ -49,10 +49,8 @@ int main(int argc, char* argv[]) {
     Uint64 lastTime = SDL_GetPerformanceCounter();
 
     while (!shouldQuit) {
-
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
-
             // Window close
             if (event.type == SDL_QUIT) {
                 shouldQuit = true;
@@ -61,11 +59,10 @@ int main(int argc, char* argv[]) {
             // MAIN MENU INPUT
             if (inMenu) {
                 MenuAction action =
-                    main_menu_handle_event(window, renderer, &event);
+                        main_menu_handle_event(window, renderer, &event);
 
                 if (action == MENU_START) {
-
-                    char* word = getRandomWordFromFile(getRandomWordFileName());
+                    char *word = getRandomWordFromFile(getRandomWordFileName());
                     if (!word) {
                         printf("Failed to get word\n");
                         shouldQuit = true;
@@ -83,8 +80,7 @@ int main(int argc, char* argv[]) {
 
                     inMenu = false;
                     inGame = true;
-                }
-                else if (action == MENU_ABOUT) {
+                } else if (action == MENU_ABOUT) {
                     inMenu = false;
                     inAbout = true;
                 }
@@ -101,7 +97,6 @@ int main(int argc, char* argv[]) {
 
             // IN-GAME INPUT
             else if (inGame) {
-
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 // THE FIX: forward ALL input to the ingame UI
                 ingame_ui_handle_event(&event);
@@ -112,17 +107,15 @@ int main(int argc, char* argv[]) {
         // ---- TIME STEP ----
         Uint64 current = SDL_GetPerformanceCounter();
         float deltaTime =
-            (float)(current - lastTime) / SDL_GetPerformanceFrequency();
+                (float) (current - lastTime) / SDL_GetPerformanceFrequency();
         lastTime = current;
 
         // ---- RENDER ----
         if (inMenu) {
             main_menu_render(renderer, window);
-        }
-        else if (inAbout) {
+        } else if (inAbout) {
             about_section_render(renderer, window);
-        }
-        else if (inGame) {
+        } else if (inGame) {
             ingame_ui_update(deltaTime);
             ingame_ui_render(renderer, window);
 

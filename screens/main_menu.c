@@ -4,15 +4,15 @@
 #include <stdbool.h>
 
 typedef struct {
-    SDL_Texture* background;
+    SDL_Texture *background;
 
-    SDL_Texture* start;
-    SDL_Texture* startHover;
-    SDL_Surface* startSurface;
+    SDL_Texture *start;
+    SDL_Texture *startHover;
+    SDL_Surface *startSurface;
 
-    SDL_Texture* about;
-    SDL_Texture* aboutHover;
-    SDL_Surface* aboutSurface;
+    SDL_Texture *about;
+    SDL_Texture *aboutHover;
+    SDL_Surface *aboutSurface;
 
     int mouseX, mouseY;
     int winW, winH;
@@ -21,13 +21,13 @@ typedef struct {
 static MainMenu menu;
 
 // --- Pixel-perfect hover check ---
-static bool is_mouse_over(SDL_Surface* surf, int mouseX, int mouseY) {
+static bool is_mouse_over(SDL_Surface *surf, int mouseX, int mouseY) {
     if (!surf) return false;
 
     if (mouseX < 0 || mouseY < 0 || mouseX >= surf->w || mouseY >= surf->h)
         return false;
 
-    Uint32* pixels = (Uint32*)surf->pixels;
+    Uint32 *pixels = (Uint32 *) surf->pixels;
     Uint32 pixel = pixels[mouseY * surf->w + mouseX];
 
     Uint8 r, g, b, a;
@@ -37,7 +37,7 @@ static bool is_mouse_over(SDL_Surface* surf, int mouseX, int mouseY) {
 }
 
 // --- Map mouse coordinates to 1920x1080 image space ---
-static void map_mouse_to_image(int mouseX, int mouseY, int winW, int winH, int* outX, int* outY) {
+static void map_mouse_to_image(int mouseX, int mouseY, int winW, int winH, int *outX, int *outY) {
     *outX = mouseX * 1920 / winW;
     *outY = mouseY * 1080 / winH;
 
@@ -49,7 +49,7 @@ static void map_mouse_to_image(int mouseX, int mouseY, int winW, int winH, int* 
 }
 
 // --- Initialize main menu ---
-bool main_menu_init(SDL_Window* window, SDL_Renderer* renderer) {
+bool main_menu_init(SDL_Window *window, SDL_Renderer *renderer) {
     if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
         printf("[ERROR] SDL_image init failed: %s\n", IMG_GetError());
         return false;
@@ -89,7 +89,7 @@ void main_menu_destroy() {
 }
 
 // --- Handle events ---
-MenuAction main_menu_handle_event(SDL_Window* window, SDL_Renderer* renderer, SDL_Event* e) {
+MenuAction main_menu_handle_event(SDL_Window *window, SDL_Renderer *renderer, SDL_Event *e) {
     if (e->type == SDL_MOUSEMOTION) {
         int mx = e->motion.x;
         int my = e->motion.y;
@@ -112,7 +112,7 @@ MenuAction main_menu_handle_event(SDL_Window* window, SDL_Renderer* renderer, SD
 }
 
 // --- Render main menu ---
-void main_menu_render(SDL_Renderer* renderer, SDL_Window* window) {
+void main_menu_render(SDL_Renderer *renderer, SDL_Window *window) {
     SDL_RenderClear(renderer);
 
     // Update window size (in case it changed while we were in another screen)

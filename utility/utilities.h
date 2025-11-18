@@ -6,11 +6,11 @@
 #define HANGMAN_UTILITIES_H
 #include <stdbool.h>
 
-char* getRandomWordFileName();
+char *getRandomWordFileName();
 
-char* getRandomWordFromFile(const char* fileName);
+char *getRandomWordFromFile(const char *fileName);
 
-char* stringToLower(char* word);
+char *stringToLower(char *word);
 
 bool charInArray(const char array[], char ch, int length);
 

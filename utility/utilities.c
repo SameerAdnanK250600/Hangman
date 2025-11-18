@@ -10,8 +10,8 @@
 #include <time.h>
 #include <stdbool.h>
 
-char* getRandomWordFileName() {
-    char* words[] = {
+char *getRandomWordFileName() {
+    char *words[] = {
         "animals",
         "continents",
         "countries",
@@ -96,7 +96,7 @@ bool appendCharToArray(char array[], char ch, int *length, int maxLength) {
 
     array[*length] = ch;
     (*length)++;
-    array[*length] = '\0';  // null terminate
+    array[*length] = '\0'; // null terminate
     return true;
 }
 

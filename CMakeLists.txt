@@ -26,6 +26,8 @@ add_executable(Hangman
         screens/ingame_ui.h
         game/game.h
         game/game.c
+        screens/graphics/texture_manager.c
+        screens/graphics/texture_manager.h
 )
 
 add_executable(test_main

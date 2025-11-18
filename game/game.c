@@ -8,7 +8,7 @@
 #include "../screens/ingame_ui.h"
 #include "../utility/utilities.h"
 
-int runGame(SDL_Window* window, SDL_Renderer* renderer) {
+int runGame(SDL_Window *window, SDL_Renderer *renderer) {
     srand(time(NULL));
 
     // Get random word
@@ -35,7 +35,7 @@ int runGame(SDL_Window* window, SDL_Renderer* renderer) {
     while (!isGameOver(&game)) {
         // --- Handle delta time ---
         Uint64 now = SDL_GetPerformanceCounter();
-        float deltaTime = (float)(now - lastTime) / SDL_GetPerformanceFrequency();
+        float deltaTime = (float) (now - lastTime) / SDL_GetPerformanceFrequency();
         lastTime = now;
 
         // --- Update UI ---
