@@ -6,8 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "graphics/texture_manager.h"
+
 typedef struct {
-    SDL_Texture *background;
     TTF_Font *font;
     char *rawText; // keep the full text for re-rendering
     SDL_Texture **lines; // textures for each line
@@ -153,8 +154,9 @@ bool about_section_init(SDL_Window *window, SDL_Renderer *renderer) {
 
     SDL_GetWindowSize(window, &about.winW, &about.winH);
 
-    about.background = IMG_LoadTexture(renderer, "resources/textures/about_section/background.png");
-    if (!about.background) return false;
+    if (!texture_manager_init_about_section(renderer)) {
+        return false;
+    }
 
     about.font = TTF_OpenFont("resources/font/PixelifySans-SemiBold.ttf", 36);
     if (!about.font) return false;
@@ -168,7 +170,7 @@ bool about_section_init(SDL_Window *window, SDL_Renderer *renderer) {
 
 // --- Destroy about section ---
 void about_section_destroy() {
-    if (about.background) SDL_DestroyTexture(about.background);
+    texture_manager_destroy_about_section();
     if (about.lines) {
         for (int i = 0; i < about.numLines; i++) {
             if (about.lines[i]) SDL_DestroyTexture(about.lines[i]);
@@ -221,7 +223,7 @@ void about_section_render(SDL_Renderer *renderer, SDL_Window *window) {
     SDL_RenderClear(renderer);
 
     SDL_Rect fullWin = {0, 0, about.winW, about.winH};
-    SDL_RenderCopy(renderer, about.background, NULL, &fullWin);
+    SDL_RenderCopy(renderer, g_aboutTextures.background, NULL, &fullWin);
 
     int y = (int) (about.winH * 0.3);
 

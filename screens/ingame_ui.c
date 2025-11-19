@@ -7,21 +7,14 @@
 #include <string.h>
 #include "../game/hangman.h"
 #include "../utility/utilities.h"
+#include "graphics/texture_manager.h"
 
-#define FRAME_FOLDER "resources/textures/ingame_ui/background_frames/"
-#define FRAME_PREFIX "background_frame_"
 #define FRAME_COUNT 180
 #define FRAME_FPS 30.0f
-
-#define LIVES_FOLDER "resources/textures/ingame_ui/"
 #define MAX_LIVES 6
-
 #define POWER_BOX_SIZE 128
 
 typedef struct {
-    SDL_Texture *frames[FRAME_COUNT];
-    SDL_Texture *livesTextures[MAX_LIVES + 1];
-
     int frameCount;
     int currentFrame;
     float frameTime;
@@ -33,10 +26,6 @@ typedef struct {
     TTF_Font *font;
 
     bool paused;
-    SDL_Texture *pauseTex;
-
-    SDL_Texture *lettersTex[2];
-    SDL_Surface *lettersSurf[2];
     bool lettersPulled;
 
     bool gameOver;
@@ -45,15 +34,11 @@ typedef struct {
     bool quitToMenu;
 
     bool powerUIActive;
-    SDL_Texture *powerUI_bg;
-    SDL_Texture *powerUI_boxes[9];
     SDL_Rect boxRects[9];
     int selectedBox;
     bool showPowerResult;
     char powerResultText[256];
     float powerResultTimer;
-
-    SDL_Surface *powerUI_boxSurfs[9]; // for click detection
 } IngameUI;
 
 static IngameUI ui;
@@ -165,11 +150,11 @@ void ingame_ui_activate_powerup(GameState *game, int power_id, char *outMessage,
                 game->lives--;
                 snprintf(buffer, sizeof(buffer), "Lost 1 life.");
             } else {
-                snprintf(buffer, sizeof(buffer), "No power-up was obtained."); // <- changed text
+                snprintf(buffer, sizeof(buffer), "No power-up was obtained.");
             }
         }
         break;
-        default: snprintf(buffer, sizeof(buffer), "Empty Box...");;
+        default: snprintf(buffer, sizeof(buffer), "Empty Box...");
     }
     strncpy(outMessage, buffer, size - 1);
     outMessage[size - 1] = 0;
@@ -190,81 +175,20 @@ bool ingame_ui_init(SDL_Window *window, SDL_Renderer *renderer, GameState *game)
     ui.waitingAfterGameOver = false;
     ui.quitToMenu = false;
     ui.lettersPulled = false;
-    ui.pauseTex = NULL;
-    ui.lettersTex[0] = ui.lettersTex[1] = NULL;
-    ui.lettersSurf[0] = ui.lettersSurf[1] = NULL;
 
-    char path[512];
-
-    for (int i = 0; i < FRAME_COUNT; i++) {
-        // snprintf(path, sizeof(path),FRAME_FOLDER FRAME_PREFIX "%03d.png", i + 1);
-        // SDL_Surface *surf = IMG_Load(path);
-
-        snprintf(path, sizeof(path),FRAME_FOLDER FRAME_PREFIX "%03d.bmp", i + 1);
-        SDL_Surface *surf = SDL_LoadBMP(path);
-        if (!surf) {
-            ui.frames[i] = NULL;
-            continue;
-        }
-        ui.frames[i] = SDL_CreateTextureFromSurface(renderer, surf);
-        SDL_FreeSurface(surf);
+    // Load textures through texture manager
+    if (!texture_manager_init_ingame_ui(renderer)) {
+        printf("[ERROR] Failed to load ingame UI textures\n");
+        return false;
     }
 
-    for (int i = 0; i <= MAX_LIVES; i++) {
-        snprintf(path, sizeof(path),LIVES_FOLDER "%d_lives.png", i);
-        SDL_Surface *surf = IMG_Load(path);
-        if (!surf) {
-            ui.livesTextures[i] = NULL;
-            continue;
-        }
-        ui.livesTextures[i] = SDL_CreateTextureFromSurface(renderer, surf);
-        SDL_FreeSurface(surf);
-    }
-
-    SDL_Surface *surf = IMG_Load("resources/textures/ingame_ui/pause_menu.png");
-    if (surf) {
-        ui.pauseTex = SDL_CreateTextureFromSurface(renderer, surf);
-        SDL_FreeSurface(surf);
-    }
-
-    surf = IMG_Load("resources/textures/ingame_ui/letters_used_pull.png");
-    if (surf) {
-        ui.lettersSurf[0] = surf;
-        ui.lettersTex[0] = SDL_CreateTextureFromSurface(renderer, surf);
-    }
-    surf = IMG_Load("resources/textures/ingame_ui/letters_used_pulled.png");
-    if (surf) {
-        ui.lettersSurf[1] = surf;
-        ui.lettersTex[1] = SDL_CreateTextureFromSurface(renderer, surf);
-    }
-    if (!ui.lettersTex[0] && ui.lettersTex[1]) {
-        ui.lettersTex[0] = ui.lettersTex[1];
-        ui.lettersSurf[0] = ui.lettersSurf[1];
-    }
-    if (!ui.lettersTex[1] && ui.lettersTex[0]) {
-        ui.lettersTex[1] = ui.lettersTex[0];
-        ui.lettersSurf[1] = ui.lettersSurf[0];
-    }
-
-    surf = IMG_Load("resources/textures/ingame_ui/power_ui/power.png");
-    if (surf) {
-        ui.powerUI_bg = SDL_CreateTextureFromSurface(renderer, surf);
-        SDL_FreeSurface(surf);
-    }
-    for (int i = 0; i < 9; i++) {
-        snprintf(path, sizeof(path), "resources/textures/ingame_ui/power_ui/box%d.png", i + 1);
-        SDL_Surface *surf = IMG_Load(path);
-        if (surf) {
-            ui.powerUI_boxSurfs[i] = surf; // store surface
-            ui.powerUI_boxes[i] = SDL_CreateTextureFromSurface(renderer, surf); // create texture
-        }
-    }
-
+    // Load font (this is UI-specific, not a texture)
     ui.font = TTF_OpenFont("resources/font/PixelifySans-SemiBold.ttf", 36);
     if (!ui.font) {
         printf("[ERROR] Failed to load font\n");
         return false;
     }
+
     return true;
 }
 
@@ -290,21 +214,11 @@ void ingame_ui_trigger_powerup(void) {
 // -------------------- destroy --------------------
 
 void ingame_ui_destroy() {
-    for (int i = 0; i < FRAME_COUNT; i++) if (ui.frames[i])SDL_DestroyTexture(ui.frames[i]);
-    for (int i = 0; i <= MAX_LIVES; i++) if (ui.livesTextures[i])SDL_DestroyTexture(ui.livesTextures[i]);
-    if (ui.pauseTex)SDL_DestroyTexture(ui.pauseTex);
-    for (int i = 0; i < 2; i++) {
-        if (ui.lettersTex[i])SDL_DestroyTexture(ui.lettersTex[i]);
-        if (ui.lettersSurf[i])SDL_FreeSurface(ui.lettersSurf[i]);
-    }
-    if (ui.powerUI_bg)SDL_DestroyTexture(ui.powerUI_bg);
-    for (int i = 0; i < 9; i++) if (ui.powerUI_boxes[i])SDL_DestroyTexture(ui.powerUI_boxes[i]);
-    if (ui.font)TTF_CloseFont(ui.font);
+    // Destroy textures through texture manager
+    texture_manager_destroy_ingame_ui();
 
-    for (int i = 0; i < 9; i++) {
-        if (ui.powerUI_boxes[i]) SDL_DestroyTexture(ui.powerUI_boxes[i]);
-        if (ui.powerUI_boxSurfs[i]) SDL_FreeSurface(ui.powerUI_boxSurfs[i]);
-    }
+    // Close font
+    if (ui.font) TTF_CloseFont(ui.font);
 }
 
 // -------------------- update --------------------
@@ -315,7 +229,7 @@ void ingame_ui_update(float deltaTime) {
     while (ui.accumulator >= ui.frameTime) {
         ui.accumulator -= ui.frameTime;
         ui.currentFrame++;
-        if (ui.currentFrame >= ui.frameCount)ui.currentFrame = 0;
+        if (ui.currentFrame >= ui.frameCount) ui.currentFrame = 0;
     }
     if (ui.showPowerResult) {
         ui.powerResultTimer -= deltaTime;
@@ -337,7 +251,7 @@ void ingame_ui_handle_event(SDL_Event *event) {
             } else if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER) {
                 char *newWord = getRandomWordFromFile(getRandomWordFileName());
                 if (newWord) {
-                    GameState newGame = resetGame(newWord,MAX_LIVES);
+                    GameState newGame = resetGame(newWord, MAX_LIVES);
                     free(newWord);
                     *(ui.game) = newGame;
                 }
@@ -350,7 +264,7 @@ void ingame_ui_handle_event(SDL_Event *event) {
     }
 
     if (event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT) {
-        SDL_Surface *surf = ui.lettersPulled ? ui.lettersSurf[1] : ui.lettersSurf[0];
+        SDL_Surface *surf = ui.lettersPulled ? g_ingameUITextures.lettersSurf[1] : g_ingameUITextures.lettersSurf[0];
         if (surf) {
             int sx, sy;
             map_mouse_to_surface(event->button.x, event->button.y, ui.winW, ui.winH, surf->w, surf->h, &sx, &sy);
@@ -376,13 +290,11 @@ void ingame_ui_handle_event(SDL_Event *event) {
         if (c >= 'a' && c <= 'z') {
             if (!validateGuess(ui.game, c)) return;
             if (processGuess(ui.game, c)) ingame_ui_trigger_powerup();
-            // <-- append to guessed letters array
             appendCharToArray(ui.game->guessed, c, &ui.game->numGuessed, MAX_GUESSED);
         } else if (c >= 'A' && c <= 'Z') {
             c = (char) tolower(key);
             if (!validateGuess(ui.game, c)) return;
             if (processGuess(ui.game, c)) ingame_ui_trigger_powerup();
-            // <-- append to guessed letters array
             appendCharToArray(ui.game->guessed, c, &ui.game->numGuessed, MAX_GUESSED);
         }
     }
@@ -392,8 +304,7 @@ void ingame_ui_handle_event(SDL_Event *event) {
         int my = event->button.y;
 
         for (int i = 0; i < 9; i++) {
-            // Get the corresponding surface
-            SDL_Surface *surf = ui.powerUI_boxSurfs[i];
+            SDL_Surface *surf = g_ingameUITextures.powerUI_boxSurfs[i];
             if (surf) {
                 int sx, sy;
                 map_mouse_to_surface(mx, my, ui.winW, ui.winH, surf->w, surf->h, &sx, &sy);
@@ -442,19 +353,15 @@ static void render_text_fitted(SDL_Renderer *renderer, const char *text, int bou
 }
 
 // -------------------- render --------------------
-// NOTE: insert your existing full ingame_ui_render implementation here,
-// replacing the power result section with multiline support:
-// char* line=strtok(ui.powerResultText,"\n"); while(line){ render_text_scaled_with_shadow(...); line=strtok(NULL,"\n"); }
-
 
 void ingame_ui_render(SDL_Renderer *renderer, SDL_Window *window) {
     SDL_GetWindowSize(window, &ui.winW, &ui.winH);
     SDL_RenderClear(renderer);
 
     // --- Background frame ---
-    if (ui.frames[ui.currentFrame]) {
+    if (g_ingameUITextures.frames[ui.currentFrame]) {
         SDL_Rect full = {0, 0, ui.winW, ui.winH};
-        SDL_RenderCopy(renderer, ui.frames[ui.currentFrame], NULL, &full);
+        SDL_RenderCopy(renderer, g_ingameUITextures.frames[ui.currentFrame], NULL, &full);
     }
 
     // --- Lives overlay ---
@@ -463,7 +370,7 @@ void ingame_ui_render(SDL_Renderer *renderer, SDL_Window *window) {
         if (lives < 0) lives = 0;
         if (lives > MAX_LIVES) lives = MAX_LIVES;
 
-        SDL_Texture *livesTex = ui.livesTextures[lives];
+        SDL_Texture *livesTex = g_ingameUITextures.livesTextures[lives];
         if (livesTex) {
             SDL_Rect r = {0, 0, ui.winW, ui.winH};
             SDL_RenderCopy(renderer, livesTex, NULL, &r);
@@ -486,8 +393,6 @@ void ingame_ui_render(SDL_Renderer *renderer, SDL_Window *window) {
             ui.gameOver = true;
             ui.waitingAfterGameOver = true;
 
-            SDL_Color white = {255, 255, 255, 255};
-
             const char *escLine = "[ESC] to quit";
             const char *enterLine = "[Enter] to play again";
 
@@ -497,26 +402,20 @@ void ingame_ui_render(SDL_Renderer *renderer, SDL_Window *window) {
             // --- Winning message (only if lives > 0) ---
             if (ui.game->lives > 0) {
                 const char *title = "YOU WON";
-
-                // 10% down from top
                 int titleY = (int) (ui.winH * 0.10f);
-
                 TTF_SizeText(ui.font, title, &textW, &textH);
                 int centerX = (ui.winW - 2 * (textW)) / 2;
-
                 render_text_scaled_with_shadow(renderer, ui.font, title, centerX, titleY, white, 2.0f);
             }
 
             // --- ESC / Enter prompts at 25% from bottom ---
             int bottomY = (int) (ui.winH * 0.75);
 
-            // ESC line
             TTF_SizeText(ui.font, escLine, &textW, &textH);
             int escX = (ui.winW - textW) / 2;
             int escY = bottomY - (textH * 2 + spacing);
             render_text_scaled_with_shadow(renderer, ui.font, escLine, escX, escY, white, 1.0f);
 
-            // Enter line
             TTF_SizeText(ui.font, enterLine, &textW, &textH);
             int enterX = (ui.winW - textW) / 2;
             int enterY = escY + textH + spacing;
@@ -525,7 +424,7 @@ void ingame_ui_render(SDL_Renderer *renderer, SDL_Window *window) {
     }
 
     // --- Letters-used button (full-screen) ---
-    SDL_Texture *buttonTex = ui.lettersPulled ? ui.lettersTex[1] : ui.lettersTex[0];
+    SDL_Texture *buttonTex = ui.lettersPulled ? g_ingameUITextures.lettersTex[1] : g_ingameUITextures.lettersTex[0];
     if (buttonTex) {
         SDL_Rect full = {0, 0, ui.winW, ui.winH};
         SDL_RenderCopy(renderer, buttonTex, NULL, &full);
@@ -535,22 +434,18 @@ void ingame_ui_render(SDL_Renderer *renderer, SDL_Window *window) {
     if (ui.lettersPulled && ui.game) {
         SDL_Color white = {255, 255, 255, 255};
 
-        // Map reference rectangle (1920x1080) to current window
         int boundX = (int) (ui.winW * (1580.0f / 1920.0f));
-        int boundW = ui.winW - boundX; // right = 0px
+        int boundW = ui.winW - boundX;
         int boundY = (int) (ui.winH * (218.0f / 1080.0f));
-        int boundH = ui.winH - boundY - (int) (ui.winH * (267.0f / 1080.0f));
 
-        // Render "guessed:" on top with shadow, centered
         int textW, textH;
         TTF_SizeText(ui.font, "guessed:", &textW, &textH);
         int centerX = boundX + (boundW - textW) / 2;
         render_text_scaled_with_shadow(renderer, ui.font, "guessed:", centerX, boundY, white, 0.95f);
 
-        // Render guessed letters (centering each line)
         char line[1024] = {0};
         int lineLen = 0;
-        int yOffset = textH + 4; // initial y offset after "guessed:"
+        int yOffset = textH + 4;
         int curY = boundY + yOffset;
 
         for (int i = 0; i < ui.game->numGuessed; ++i) {
@@ -558,29 +453,23 @@ void ingame_ui_render(SDL_Renderer *renderer, SDL_Window *window) {
             char buffer[8];
             snprintf(buffer, sizeof(buffer), "%c%s", c, (i < ui.game->numGuessed - 1) ? ", " : "");
 
-            // Tentatively append to line
             char tempLine[1024];
             snprintf(tempLine, sizeof(tempLine), "%s%s", line, buffer);
 
-            // Check width
             TTF_SizeText(ui.font, tempLine, &textW, &textH);
             if (textW > boundW && lineLen > 0) {
-                // Render current line with shadow, centered
                 TTF_SizeText(ui.font, line, &textW, &textH);
                 centerX = boundX + (boundW - textW) / 2;
                 render_text_scaled_with_shadow(renderer, ui.font, line, centerX, curY, white, 0.95f);
                 curY += textH + 2;
-                // Start new line
                 snprintf(line, sizeof(line), "%s", buffer);
                 lineLen = strlen(buffer);
             } else {
-                // Append to current line
                 snprintf(line, sizeof(line), "%s", tempLine);
                 lineLen += strlen(buffer);
             }
         }
 
-        // Render the last line with shadow, centered
         if (lineLen > 0) {
             TTF_SizeText(ui.font, line, &textW, &textH);
             centerX = boundX + (boundW - textW) / 2;
@@ -589,26 +478,23 @@ void ingame_ui_render(SDL_Renderer *renderer, SDL_Window *window) {
     }
 
     // --- Pause overlay on top ---
-    if (ui.paused && ui.pauseTex) {
+    if (ui.paused && g_ingameUITextures.pauseTex) {
         SDL_Rect full = {0, 0, ui.winW, ui.winH};
-        SDL_RenderCopy(renderer, ui.pauseTex, NULL, &full);
+        SDL_RenderCopy(renderer, g_ingameUITextures.pauseTex, NULL, &full);
     }
 
     // --- Power UI ---
     if (ui.powerUIActive) {
-        // dim background
         SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 150); // semi-transparent
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 150);
         SDL_Rect full = {0, 0, ui.winW, ui.winH};
         SDL_RenderFillRect(renderer, &full);
 
-        // render power.png
-        if (ui.powerUI_bg) SDL_RenderCopy(renderer, ui.powerUI_bg, NULL, &full);
+        if (g_ingameUITextures.powerUI_bg) SDL_RenderCopy(renderer, g_ingameUITextures.powerUI_bg, NULL, &full);
 
-        // render all box textures full-screen
         for (int i = 0; i < 9; i++) {
-            if (ui.powerUI_boxes[i])
-                SDL_RenderCopy(renderer, ui.powerUI_boxes[i], NULL, &full);
+            if (g_ingameUITextures.powerUI_boxes[i])
+                SDL_RenderCopy(renderer, g_ingameUITextures.powerUI_boxes[i], NULL, &full);
         }
     }
 
@@ -621,13 +507,10 @@ void ingame_ui_render(SDL_Renderer *renderer, SDL_Window *window) {
 
         SDL_Color white = {255, 255, 255, 255};
 
-        // Measure the text
         int textW, textH;
         if (TTF_SizeText(ui.font, ui.powerResultText, &textW, &textH) == 0) {
-            // Compute centered position
             int x = (ui.winW - textW) / 2;
             int y = (ui.winH - textH) / 2;
-
             render_text_scaled_with_shadow(renderer, ui.font, ui.powerResultText, x, y, white, 1.5f);
         }
     }

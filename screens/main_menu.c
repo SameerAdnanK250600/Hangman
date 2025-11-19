@@ -1,19 +1,10 @@
 #include "main_menu.h"
 #include <SDL2/SDL_image.h>
-#include <stdio.h>
 #include <stdbool.h>
 
+#include "graphics/texture_manager.h"
+
 typedef struct {
-    SDL_Texture *background;
-
-    SDL_Texture *start;
-    SDL_Texture *startHover;
-    SDL_Surface *startSurface;
-
-    SDL_Texture *about;
-    SDL_Texture *aboutHover;
-    SDL_Surface *aboutSurface;
-
     int mouseX, mouseY;
     int winW, winH;
 } MainMenu;
@@ -57,33 +48,12 @@ bool main_menu_init(SDL_Window *window, SDL_Renderer *renderer) {
 
     SDL_GetWindowSize(window, &menu.winW, &menu.winH);
 
-    // Load background
-    menu.background = IMG_LoadTexture(renderer, "resources/textures/main_menu/background.png");
-
-    // Load Start button
-    menu.startSurface = IMG_Load("resources/textures/main_menu/start.png");
-    menu.start = SDL_CreateTextureFromSurface(renderer, menu.startSurface);
-    menu.startHover = SDL_CreateTextureFromSurface(renderer, IMG_Load("resources/textures/main_menu/start_hover.png"));
-
-    // Load About button
-    menu.aboutSurface = IMG_Load("resources/textures/main_menu/about.png");
-    menu.about = SDL_CreateTextureFromSurface(renderer, menu.aboutSurface);
-    menu.aboutHover = SDL_CreateTextureFromSurface(renderer, IMG_Load("resources/textures/main_menu/about_hover.png"));
-
-    return true;
+    return texture_manager_init_main_menu(renderer);
 }
 
 // --- Destroy textures ---
 void main_menu_destroy() {
-    SDL_DestroyTexture(menu.background);
-
-    SDL_DestroyTexture(menu.start);
-    SDL_DestroyTexture(menu.startHover);
-    SDL_FreeSurface(menu.startSurface);
-
-    SDL_DestroyTexture(menu.about);
-    SDL_DestroyTexture(menu.aboutHover);
-    SDL_FreeSurface(menu.aboutSurface);
+    texture_manager_destroy_main_menu();
 
     IMG_Quit();
 }
@@ -97,9 +67,9 @@ MenuAction main_menu_handle_event(SDL_Window *window, SDL_Renderer *renderer, SD
     }
 
     if (e->type == SDL_MOUSEBUTTONDOWN && e->button.button == SDL_BUTTON_LEFT) {
-        if (is_mouse_over(menu.startSurface, menu.mouseX, menu.mouseY))
+        if (is_mouse_over(g_mainMenuTextures.startSurface, menu.mouseX, menu.mouseY))
             return MENU_START;
-        if (is_mouse_over(menu.aboutSurface, menu.mouseX, menu.mouseY))
+        if (is_mouse_over(g_mainMenuTextures.aboutSurface, menu.mouseX, menu.mouseY))
             return MENU_ABOUT;
     }
 
@@ -120,17 +90,17 @@ void main_menu_render(SDL_Renderer *renderer, SDL_Window *window) {
 
     // Stretch images to fill the window
     SDL_Rect fullWin = {0, 0, menu.winW, menu.winH};
-    SDL_RenderCopy(renderer, menu.background, NULL, &fullWin);
+    SDL_RenderCopy(renderer, g_mainMenuTextures.background, NULL, &fullWin);
 
-    if (is_mouse_over(menu.startSurface, menu.mouseX, menu.mouseY))
-        SDL_RenderCopy(renderer, menu.startHover, NULL, &fullWin);
+    if (is_mouse_over(g_mainMenuTextures.startSurface, menu.mouseX, menu.mouseY))
+        SDL_RenderCopy(renderer, g_mainMenuTextures.startHover, NULL, &fullWin);
     else
-        SDL_RenderCopy(renderer, menu.start, NULL, &fullWin);
+        SDL_RenderCopy(renderer, g_mainMenuTextures.start, NULL, &fullWin);
 
-    if (is_mouse_over(menu.aboutSurface, menu.mouseX, menu.mouseY))
-        SDL_RenderCopy(renderer, menu.aboutHover, NULL, &fullWin);
+    if (is_mouse_over(g_mainMenuTextures.aboutSurface, menu.mouseX, menu.mouseY))
+        SDL_RenderCopy(renderer, g_mainMenuTextures.aboutHover, NULL, &fullWin);
     else
-        SDL_RenderCopy(renderer, menu.about, NULL, &fullWin);
+        SDL_RenderCopy(renderer, g_mainMenuTextures.about, NULL, &fullWin);
 
     SDL_RenderPresent(renderer);
 }
