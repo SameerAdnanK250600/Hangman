@@ -4,6 +4,7 @@
 #include "screens/main_menu.h"
 #include "screens/about_section.h"
 #include "screens/ingame_ui.h"
+#include "screens/loading_screen.h"
 #include "game/hangman.h"
 #include "screens/graphics/texture_manager.h"
 #include "utility/utilities.h"
@@ -36,9 +37,54 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    // Initialize loading screen
+    if (!loading_screen_init(window, renderer)) {
+        printf("Loading screen init failed\n");
+        return 1;
+    }
+
+    // Start async surface loading (on background thread)
+    if (!texture_manager_start_async_load()) {
+        printf("Failed to start texture loading\n");
+        return 1;
+    }
+
+    // Show loading screen while surfaces load
+    bool loadingComplete = false;
+    while (!loadingComplete) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                loading_screen_destroy();
+                texture_manager_destroy_all();
+                SDL_DestroyRenderer(renderer);
+                SDL_DestroyWindow(window);
+                TTF_Quit();
+                SDL_Quit();
+                return 0;
+            }
+        }
+
+        float progress = texture_manager_get_progress();
+        loading_screen_render(renderer, window, progress);
+
+        // Check if surfaces are loaded
+        if (texture_manager_surfaces_loaded()) {
+            // Now convert surfaces to textures on main thread
+            if (texture_manager_process_loaded_surfaces(renderer)) {
+                loadingComplete = true;
+            }
+        }
+
+        SDL_Delay(16); // ~60 FPS
+    }
+
+    // Cleanup loading screen
+    loading_screen_destroy();
+
+    // Initialize UI systems (they now just use already-loaded textures)
     if (!main_menu_init(window, renderer)) return 1;
     if (!about_section_init(window, renderer)) return 1;
-    if (!texture_manager_init(renderer)) return 1;
 
     bool shouldQuit = false;
     bool inMenu = true;
@@ -99,10 +145,7 @@ int main(int argc, char *argv[]) {
 
             // IN-GAME INPUT
             else if (inGame) {
-                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                // THE FIX: forward ALL input to the ingame UI
                 ingame_ui_handle_event(&event);
-                // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
             }
         }
 
@@ -131,10 +174,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // // Cleanup
-    // if (inGame) ingame_ui_destroy();
-    // main_menu_destroy();
-    // about_section_destroy();
+    // Cleanup
     texture_manager_destroy_all();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
