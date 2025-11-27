@@ -25,7 +25,8 @@ int main() {
 
     //main game loop
     while (!isGameOver(&game)) {
-        printf("\nWord: %s\n", game.revealed);
+        printf("\nHint: %s\n", game.wordFile);
+        printf("Word: %s\n", game.revealed);
         printf("Lives: %d\n", game.lives);
         printf("Guessed: %s\n", game.guessed);
 
